@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محلل الشارت الذكي – محاكاة فنية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * { 
+            font-family: 'Outfit', system-ui, sans-serif; 
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(100, 200, 255, 0.18);
+            border-radius: 16px;
+            transition: all 0.35s ease;
+        }
+
+        .glass:hover {
+            border-color: rgba(100, 200, 255, 0.35);
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateY(-3px);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(100, 200, 255, 0.35);
+            border-radius: 16px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(2, 13, 46, 0.3);
+        }
+
+        .upload-area:hover {
+            border-color: rgba(100, 200, 255, 0.6);
+            background: rgba(2, 13, 46, 0.45);
+        }
+
+        .input-field {
+            background: rgba(3, 7, 30, 0.7);
+            border: 1px solid rgba(100, 200, 255, 0.22);
+            border-radius: 10px;
+            padding: 0.9rem 1.1rem;
+            color: white;
+            transition: all 0.25s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(100, 200, 255, 0.7);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            padding: 0.9rem 2rem;
+            border-radius: 10px;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-reset {
+            background: rgba(100, 200, 255, 0.12);
+            color: #7dd3fc;
+            border: 1px solid rgba(100, 200, 255, 0.35);
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover {
+            background: rgba(100, 200, 255, 0.22);
+            border-color: rgba(100, 200, 255, 0.6);
+        }
+
+        .decision-box {
+            background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.75));
+            border: 2px solid rgba(100,200,255,0.25);
+            border-radius: 20px;
+            padding: 2.5rem;
+            animation: fadeUp 0.7s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(35px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.6s ease;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(100, 200, 255, 0.15);
+        }
+
+        .disclaimer {
+            font-size: 0.75rem;
+            color: #f87171;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // أيقونات (بقيت كما هي)
+        const FiUpload = () => React.createElement('svg', {width:'1em',height:'1em',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'2',strokeLinecap:'round',strokeLinejoin:'round'},
+            React.createElement('path',{d:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'}),
+            React.createElement('polyline',{points:'17 8 12 3 7 8'}),
+            React.createElement('line',{x1:'12',y1:'3',x2:'12',y2:'15'}));
+
+        const FiZap = () => React.createElement('svg',{...},React.createElement('polygon',{points:'13 2 3 14 12 14 11 22 21 10 12 10 13 2'}));
+        const FiTrendingUp = () => React.createElement('svg',{...},React.createElement('polyline',{points:'23 6 13.5 15.5 8 10 1 18'}),React.createElement('polyline',{points:'17 6 23 6 23 12'}));
+        const FiTrendingDown = () => React.createElement('svg',{...},React.createElement('polyline',{points:'23 18 13.5 8.5 8 14 1 7'}),React.createElement('polyline',{points:'17 18 23 18 23 12'}));
+        const FiAlertCircle = () => React.createElement('svg',{...},React.createElement('circle',{cx:'12',cy:'12',r:'10'}),React.createElement('line',{x1:'12',y1:'8',x2:'12',y2:'12'}),React.createElement('circle',{cx:'12',cy:'16',r:'1'}));
+        const FiLoader = () => React.createElement('svg',{... ,className:'animate-spin'},React.createElement('line',{x1:'12',y1:'2',x2:'12',y2:'6'}), /* ... باقي الخطوط */ );
+
+        const SmartChartAnalyzer = () => {
+            const [selectedFile, setSelectedFile] = React.useState(null);
+            const [preview, setPreview] = React.useState(null);
+            const [analysis, setAnalysis] = React.useState(null);
+            const [loading, setLoading] = React.useState(false);
+            const [assetName, setAssetName] = React.useState('');
+            const [currentPrice, setCurrentPrice] = React.useState('');
+            const fileInputRef = React.useRef(null);
+
+            const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+            const handleFileSelect = (e) => {
+                const file = e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('يرجى اختيار صورة فقط');
+                    return;
+                }
+                if (file.size > MAX_FILE_SIZE) {
+                    alert('الحد الأقصى 5 ميجابايت');
+                    return;
+                }
+                setSelectedFile(file);
+                const reader = new FileReader();
+                reader.onload = (ev) => setPreview(ev.target.result);
+                reader.readAsDataURL(file);
+            };
+
+            const analyzeChart = async () => {
+                if (!preview || !assetName || !currentPrice) {
+                    alert('يرجى ملء جميع الحقول');
+                    return;
+                }
+
+                setLoading(true);
+
+                // محاكاة تأخير API / معالجة صورة
+                await new Promise(r => setTimeout(r, 2200));
+
+                const mockAnalysis = performImprovedChartAnalysis(parseFloat(currentPrice) || 100);
+                setAnalysis(mockAnalysis);
+                setLoading(false);
+            };
+
+            const performImprovedChartAnalysis = (price) => {
+                // -------------------------------------------------------
+                //            قواعد أكثر منطقية (محاكاة ذكية)
+                // -------------------------------------------------------
+                const patternsDB = [
+                    {name: "رأس وكتفين عادي (هابط)", type: "bearish", reliability: 0.84, impact: -5},
+                    {name: "رأس وكتفين معكوس (صاعد)", type: "bullish", reliability: 0.83, impact: +5},
+                    {name: "قمة مزدوجة (هابط)", type: "bearish", reliability: 0.75, impact: -4},
+                    {name: "قاع مزدوج (صاعد)", type: "bullish", reliability: 0.78, impact: +4.5},
+                    {name: "علم صاعد / راية", type: "bullish", reliability: 0.75, impact: +3},
+                    {name: "علم هابط", type: "bearish", reliability: 0.72, impact: -3},
+                    {name: "مثلث صاعد", type: "bullish", reliability: 0.73, impact: +3.5},
+                    {name: "مثلث هابط", type: "bearish", reliability: 0.70, impact: -3.5},
+                    {name: "كوب ومقبض", type: "bullish", reliability: 0.76, impact: +4},
+                    {name: "مستطيل / consolidation", type: "neutral", reliability: 0.65, impact: 0},
+                    {name: "وتد صاعد", type: "bullish", reliability: 0.68, impact: +2.5},
+                    {name: "وتد هابط", type: "bearish", reliability: 0.67, impact: -2.5},
+                ];
+
+                // اختيار 2–4 أنماط بشكل شبه عشوائي لكن مع وزن للأقوى
+                const selectedPatterns = [];
+                const totalImpact = {bull:0, bear:0};
+
+                // محاكاة "اكتشاف" → نعطي احتمال أعلى للأنماط ذات الموثوقية العالية
+                for (let i = 0; i < 4; i++) {
+                    const rand = Math.random();
+                    let pattern;
+                    if (rand < 0.38) pattern = patternsDB.find(p => p.reliability > 0.80) || patternsDB[0];
+                    else if (rand < 0.70) pattern = patternsDB[Math.floor(Math.random()*patternsDB.length)];
+                    else pattern = patternsDB[Math.floor(Math.random()*patternsDB.length)];
+
+                    selectedPatterns.push(pattern.name);
+                    if (pattern.type === "bullish") totalImpact.bull += pattern.impact;
+                    if (pattern.type === "bearish") totalImpact.bear += pattern.impact;
+                }
+
+                const netTechnical = totalImpact.bull - totalImpact.bear;
+                
+                // محاكاة مؤشرات أخرى
+                const rsi = 30 + Math.floor(Math.random() * 70); // 30–100
+                const isOverbought = rsi > 70;
+                const isOversold  = rsi < 30;
+
+                const maStatus = Math.random() > 0.5 ? "السعر فوق MA50 & MA200" : "السعر تحت MA50 & MA200";
+                const volumeTrend = ["مرتفع جداً","مرتفع","متوسط","منخفض"][Math.floor(Math.random()*4)];
+
+                // القرار النهائي
+                let decision, confidence, color, trend;
+
+                if (netTechnical >= 7 || (netTechnical >= 4 && !isOverbought)) {
+                    decision = "شراء قوي";
+                    confidence = 82 + Math.floor(Math.random()*13); // \~82-95
+                    color = "green";
+                    trend = "صاعد قوي";
+                } else if (netTechnical >= 3 || (netTechnical >= 1 && rsi < 55)) {
+                    decision = "شراء";
+                    confidence = 68 + Math.floor(Math.random()*12);
+                    color = "emerald";
+                    trend = "صاعد";
+                } else if (netTechnical <= -7 || (netTechnical <= -4 && !isOversold)) {
+                    decision = "بيع قوي";
+                    confidence = 82 + Math.floor(Math.random()*13);
+                    color = "red";
+                    trend = "هابط قوي";
+                } else if (netTechnical <= -3 || (netTechnical <= -1 && rsi > 45)) {
+                    decision = "بيع";
+                    confidence = 68 + Math.floor(Math.random()*12);
+                    color = "rose";
+                    trend = "هابط";
+                } else {
+                    decision = "محايد / انتظر";
+                    confidence = 50 + Math.floor(Math.random()*21);
+                    color = "yellow";
+                    trend = "تذبذب / ترقب";
+                }
+
+                // مستويات واقعية أكثر
+                const supportLevels = [
+                    (price * 0.942).toFixed(2),
+                    (price * 0.905).toFixed(2),
+                    (price * 0.868).toFixed(2)
+                ];
+                const resistanceLevels = [
+                    (price * 1.058).toFixed(2),
+                    (price * 1.102).toFixed(2),
+                    (price * 1.145).toFixed(2)
+                ];
+
+                const entry  = decision.includes("شراء") ?
+                    (price * (0.97 + Math.random()*0.03)).toFixed(2) :
+                    (price * (1.03 - Math.random()*0.03)).toFixed(2);
+
+                const tpMult = decision.includes("شراء") ? 1.09 + Math.random()*0.22 : 0.88 - Math.random()*0.14;
+                const slMult = decision.includes("شراء") ? 0.93 - Math.random()*0.04 : 1.07 + Math.random()*0.05;
+
+                return {
+                    decision,
+                    confidence,
+                    color,
+                    trend,
+                    netTechnical: netTechnical.toFixed(1),
+                    chartPatterns: selectedPatterns,
+                    supportLevels,
+                    resistanceLevels,
+                    rsiValue: rsi,
+                    maStatus,
+                    volumeTrend,
+                    recommendedEntryPrice: entry,
+                    recommendedTakeProfit: (price * tpMult).toFixed(2),
+                    recommendedStopLoss: (price * slMult).toFixed(2),
+                    disclaimer: "هذا تحليل محاكاة فنية فقط – لأغراض تعليمية. لا يعتبر توصية استثمارية."
+                };
+            };
+
+            const resetForm = () => {
+                setSelectedFile(null);
+                setPreview(null);
+                setAnalysis(null);
+                setAssetName('');
+                setCurrentPrice('');
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            };
+
+            const colorMap = {
+                green:   {text: 'text-emerald-500',   bg: 'from-emerald-950 to-emerald-800'},
+                emerald: {text: 'text-emerald-400',   bg: 'from-emerald-950 to-emerald-900'},
+                red:     {text: 'text-rose-500',      bg: 'from-rose-950 to-rose-800'},
+                rose:    {text: 'text-rose-400',      bg: 'from-rose-950 to-rose-900'},
+                yellow:  {text: 'text-amber-500',     bg: 'from-amber-950 to-amber-900'},
+            };
+
+            const currentColor = colorMap[analysis?.color] || colorMap.yellow;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-5 md:p-8 text-right" dir="rtl">
+                    <div className="max-w-5xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-10">
+                            <div className="flex items-center justify-center gap-3 mb-4">
+                                <div className="text-blue-400 text-5xl"><FiZap /></div>
+                                <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
+                                    محلل الشارت الذكي
+                                </h1>
+                            </div>
+                            <p className="text-slate-400 text-lg md:text-xl">
+                                ارفع صورة الشارت • احصل على تحليل فني محاكى + توصية مبدئية
+                            </p>
+                            <p className="disclaimer mt-2">
+                                لأغراض تعليمية وتجريبية فقط – لا تستخدم لاتخاذ قرارات مالية حقيقية
+                            </p>
+                        </div>
+
+                        {!analysis ? (
+                            // ........................................
+                            //             الواجهة الأولية (بقيت قريبة)
+                            // ........................................
+                            <div className="space-y-8">
+                                <div className="glass p-7 md:p-10">
+                                    <h2 className="text-2xl font-bold text-white mb-7">البيانات الأساسية</h2>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-9">
+                                        <div>
+                                            <label className="block text-slate-300 text-sm font-semibold mb-3">اسم الأصل / الرمز</label>
+                                            <input type="text" value={assetName} onChange={e=>setAssetName(e.target.value)}
+                                                placeholder="مثال: BTCUSDT  •  AAPL  •  7203.SR" className="input-field w-full" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-slate-300 text-sm font-semibold mb-3">السعر الحالي</label>
+                                            <input type="number" min="0.0000001" step="any" value={currentPrice}
+                                                onChange={e => {const v=e.target.value; if(v==='' || Number(v)>=0) setCurrentPrice(v);}}
+                                                placeholder="0.00" className="input-field w-full" />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-7">
+                                        <label className="block text-slate-300 text-sm font-semibold mb-3">صورة الشارت</label>
+                                        <div className="upload-area" onClick={()=>fileInputRef.current?.click()}>
+                                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
+                                            <div className="flex flex-col items-center gap-4 text-slate-300">
+                                                <div className="text-blue-400 text-6xl"><FiUpload /></div>
+                                                <div className="text-center">
+                                                    <p className="font-bold text-white text-lg">اضغط أو اسحب الصورة هنا</p>
+                                                    <p className="text-sm mt-2">PNG • JPG • WEBP • الحد الأقصى 5 ميجا</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {preview && (
+                                        <div className="mb-8">
+                                            <p className="text-slate-300 text-sm font-semibold mb-3">معاينة الصورة</p>
+                                            <img src={preview} alt="preview" className="max-h-80 mx-auto rounded-xl border border-slate-600/50 shadow-2xl object-contain" />
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <button onClick={analyzeChart} disabled={loading || !preview || !assetName || !currentPrice}
+                                            className="btn-primary text-white flex-1 flex items-center justify-center gap-3 disabled:opacity-50">
+                                            {loading ? (
+                                                <>
+                                                    <FiLoader className="text-xl animate-spin" /> جاري المعالجة...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FiZap className="text-xl" /> حلل الشارت الآن
+                                                </>
+                                            )}
+                                        </button>
+                                        <button onClick={resetForm} className="btn-reset">إعادة تعيين</button>
+                                    </div>
+                                </div>
+
+                                <div className="glass p-6 text-slate-300 text-sm">
+                                    <h3 className=
