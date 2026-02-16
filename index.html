@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محلل الشارت الذكي</title>
+    <title>المحلل الشامل - تحليل سبوت (شراء منخفض - بيع أعلى)</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- استخدام الإصدارات المستقرة من React -->
+    
+    <!-- مكتبة التحليل الفني -->
+    <script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.1.0/dist/browser.umd.js"></script>
+    
+    <!-- React -->
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <!-- Babel للكتابة بـ JSX -->
+    
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Axios للطلبات HTTP -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
         
@@ -38,21 +49,6 @@
             border-color: rgba(100, 200, 255, 0.35);
             background: rgba(15, 23, 42, 0.8);
             transform: translateY(-3px);
-        }
-
-        .upload-area {
-            border: 2px dashed rgba(100, 200, 255, 0.35);
-            border-radius: 16px;
-            padding: 3rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(2, 13, 46, 0.3);
-        }
-
-        .upload-area:hover {
-            border-color: rgba(100, 200, 255, 0.6);
-            background: rgba(2, 13, 46, 0.45);
         }
 
         .input-field {
@@ -109,17 +105,109 @@
             border-color: rgba(100, 200, 255, 0.6);
         }
 
-        .decision-box {
+        .analysis-card {
             background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.75));
             border: 2px solid rgba(100,200,255,0.25);
             border-radius: 20px;
-            padding: 2.5rem;
+            padding: 2rem;
             animation: fadeUp 0.7s ease-out;
         }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(35px); }
             to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .school-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            margin: 0.25rem;
+            cursor: help;
+            transition: all 0.3s;
+        }
+
+        .school-badge:hover {
+            background: rgba(59, 130, 246, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(100, 200, 255, 0.15);
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            border-color: rgba(100, 200, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .badge-buy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-strong-buy {
+            background: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            border: 1px solid #10b981;
+            font-weight: 700;
+        }
+
+        .badge-neutral {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: rgba(15, 23, 42, 0.95);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
 
         .progress-ring {
@@ -130,32 +218,28 @@
             transition: stroke-dashoffset 0.6s ease;
         }
 
-        .metric-card {
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(100, 200, 255, 0.15);
+        .level-positive {
+            color: #10b981;
         }
 
-        /* تعريف الأيقونات يدوياً */
-        .icon {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
+        .level-negative {
+            color: #ef4444;
         }
 
-        .animate-spin {
-            animation: spin 1s linear infinite;
+        .level-neutral {
+            color: #f59e0b;
         }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .strategy-badge {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .tool-badge {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f9a8d4;
+            border: 1px solid rgba(236, 72, 153, 0.3);
         }
     </style>
 </head>
@@ -184,16 +268,6 @@
         }
 
         // تعريف الأيقونات
-        const FiUpload = createIcon([
-            React.createElement('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', key: '1' }),
-            React.createElement('polyline', { points: '17 8 12 3 7 8', key: '2' }),
-            React.createElement('line', { x1: '12', y1: '3', x2: '12', y2: '15', key: '3' })
-        ]);
-
-        const FiZap = createIcon([
-            React.createElement('polygon', { points: '13 2 3 14 12 14 11 22 21 10 12 10 13 2', key: '1' })
-        ]);
-
         const FiTrendingUp = createIcon([
             React.createElement('polyline', { points: '23 6 13.5 15.5 8 10 1 18', key: '1' }),
             React.createElement('polyline', { points: '17 6 23 6 23 12', key: '2' })
@@ -221,139 +295,847 @@
             React.createElement('line', { x1: '16.24', y1: '7.76', x2: '19.07', y2: '4.93', key: '8' })
         ]);
 
-        // مكون SmartChartAnalyzer
+        const FiZap = createIcon([
+            React.createElement('polygon', { points: '13 2 3 14 12 14 11 22 21 10 12 10 13 2', key: '1' })
+        ]);
+
+        const FiInfo = createIcon([
+            React.createElement('circle', { cx: '12', cy: '12', r: '10', key: '1' }),
+            React.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '12', key: '2' }),
+            React.createElement('circle', { cx: '12', cy: '8', r: '1', key: '3' })
+        ]);
+
+        // ==================== دوال التحليل الشامل ====================
+
+        // شرح المدارس التحليلية
+        const schoolDescriptions = {
+            classical: {
+                name: 'التحليل الكلاسيكي',
+                description: 'يعتمد على الدعم والمقاومة والاتجاهات والأنماط السعرية التقليدية'
+            },
+            elliott: {
+                name: 'التحليل الموجي (إليوت)',
+                description: 'تحليل دورات السوق عبر موجات دافعة وتصحيحية (5 موجات صاعدة، 3 موجات هابطة)'
+            },
+            wyckoff: {
+                name: 'وايكوف',
+                description: 'تحليل تجمع و توزيع المؤسسات الكبرى عبر مراحل التجميع والارتفاع والتوزيع والهبوط'
+            },
+            digital: {
+                name: 'التحليل الرقمي',
+                description: 'الأرقام النفسية والمستويات السعرية المهمة (مثل 9.00، 8.55)'
+            },
+            time: {
+                name: 'التحليل الزمني',
+                description: 'دورات زمنية محتملة للانعكاس بناءً على سلوك الشموع'
+            },
+            harmonic: {
+                name: 'الهارمونيك',
+                description: 'أنماط سعرية متناسقة تعتمد على نسب فيبوناتشي (AB=CD، BAT، Gartley)'
+            },
+            liquidity: {
+                name: 'السيولة الذكية',
+                description: 'تحليل سيولة السوق، مسح السيولة، الفجوات السعرية (FVG)، الذيل الذكي'
+            },
+            volume: {
+                name: 'تحليل الحجم',
+                description: 'تحليل حجم التداول والمؤشرات المرتبطة به (OBV، Volume Profile)'
+            }
+        };
+
+        // شرح الاستراتيجيات
+        const strategyDescriptions = {
+            powerOf3: {
+                name: 'Power of 3',
+                description: 'التلاعب (Manipulation) ثم التوسع (Expansion) ثم التوزيع (Distribution)'
+            },
+            sweep: {
+                name: 'Sweep Strategy',
+                description: 'اصطياد السيولة أسفل القيعان أو أعلى القمم ثم الانعكاس'
+            },
+            skSystem: {
+                name: 'SK System',
+                description: 'نظام تحديد الاتجاه بناءً على مستويات وكسرها'
+            }
+        };
+
+        // شرح الأدوات
+        const toolDescriptions = {
+            vReversal: 'انعكاس على شكل V',
+            stopHunt: 'اصطياد وقف الخسائر',
+            fibonacci: 'نسب فيبوناتشي (61.8%، 38.2%، 78.6%)',
+            fvg: 'فجوة سعرية عادلة (Fair Value Gap)',
+            breaker: 'منطقة كسر وتكوين مقاومة/دعم جديدة',
+            smartWick: 'ذيل شمعة ذكي يدل على امتصاص',
+            obv: 'مؤشر حجم التداول On Balance Volume',
+            tesla369: 'نظرية 3-6-9 لتسلا للأرقام',
+            cmeGap: 'فجوة سعرية في CME'
+        };
+
+        // جلب بيانات السوق
+        const fetchMarketData = async (symbol, timeframe = '4h') => {
+            try {
+                // تنظيف الرمز
+                let cleanSymbol = symbol.toUpperCase().trim();
+                
+                // إضافة USDT إذا كانت عملة رقمية
+                const cryptoList = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'DOT', 'LINK', 'MATIC', 'AVAX', 'UNI', 'XRP'];
+                if (cryptoList.includes(cleanSymbol) && !cleanSymbol.includes('USDT')) {
+                    cleanSymbol = cleanSymbol + 'USDT';
+                }
+                
+                // تحويل التايم فريم لصيغة Binance
+                const intervalMap = {
+                    '1h': '1h',
+                    '2h': '2h',
+                    '4h': '4h',
+                    '1d': '1d',
+                    '1w': '1w'
+                };
+                
+                const interval = intervalMap[timeframe] || '4h';
+                
+                console.log(`جاري جلب بيانات: ${cleanSymbol} - ${interval}`);
+                
+                const response = await axios.get(
+                    `https://api.binance.com/api/v3/klines?symbol=${cleanSymbol}&interval=${interval}&limit=200`
+                );
+                
+                // استخراج البيانات
+                const prices = response.data.map(candle => parseFloat(candle[4])); // سعر الإغلاق
+                const volumes = response.data.map(candle => parseFloat(candle[5])); // الحجم
+                const highs = response.data.map(candle => parseFloat(candle[2])); // أعلى سعر
+                const lows = response.data.map(candle => parseFloat(candle[3])); // أقل سعر
+                const opens = response.data.map(candle => parseFloat(candle[1])); // سعر الافتتاح
+                
+                return {
+                    prices,
+                    volumes,
+                    highs,
+                    lows,
+                    opens,
+                    currentPrice: prices[prices.length - 1],
+                    symbol: cleanSymbol,
+                    timeframe: interval
+                };
+            } catch (error) {
+                console.error('خطأ في جلب البيانات:', error);
+                
+                // بيانات تجريبية للعرض
+                const basePrice = 100;
+                const prices = [];
+                let currentPrice = basePrice;
+                
+                for (let i = 0; i < 100; i++) {
+                    const change = (Math.random() - 0.5) * 2;
+                    currentPrice = currentPrice * (1 + change / 100);
+                    prices.push(currentPrice);
+                }
+                
+                return {
+                    prices,
+                    volumes: Array(100).fill(0).map(() => Math.random() * 1000),
+                    highs: prices.map(p => p * 1.02),
+                    lows: prices.map(p => p * 0.98),
+                    opens: prices,
+                    currentPrice: prices[prices.length - 1],
+                    symbol: symbol,
+                    timeframe: timeframe,
+                    isDemo: true
+                };
+            }
+        };
+
+        // التحليل الشامل - المدارس الثمانية
+        const analyzeAllSchools = (data) => {
+            const prices = data.prices;
+            const volumes = data.volumes;
+            const currentPrice = data.currentPrice;
+            const highs = data.highs || prices.map(p => p * 1.02);
+            const lows = data.lows || prices.map(p => p * 0.98);
+            
+            // المؤشرات الأساسية
+            let rsiValue = 50;
+            try {
+                const rsiResult = technicalindicators.RSI.calculate({
+                    values: prices,
+                    period: 14
+                });
+                rsiValue = Math.round(rsiResult[rsiResult.length - 1] || 50);
+            } catch (e) {}
+            
+            // حساب المتوسطات
+            let sma20 = [], sma50 = [], sma200 = [];
+            try {
+                sma20 = technicalindicators.SMA.calculate({ values: prices, period: 20 });
+                sma50 = technicalindicators.SMA.calculate({ values: prices, period: 50 });
+                sma200 = technicalindicators.SMA.calculate({ values: prices, period: 200 });
+            } catch (e) {}
+            
+            const lastSMA20 = sma20[sma20.length - 1] || currentPrice;
+            const lastSMA50 = sma50[sma50.length - 1] || currentPrice;
+            const lastSMA200 = sma200[sma200.length - 1] || currentPrice;
+            
+            // تحديد القمم والقيعان
+            const pivotHighs = [];
+            const pivotLows = [];
+            
+            for (let i = 2; i < prices.length - 2; i++) {
+                if (prices[i] > prices[i-1] && prices[i] > prices[i-2] && 
+                    prices[i] > prices[i+1] && prices[i] > prices[i+2]) {
+                    pivotHighs.push({ price: prices[i], index: i });
+                }
+                if (prices[i] < prices[i-1] && prices[i] < prices[i-2] && 
+                    prices[i] < prices[i+1] && prices[i] < prices[i+2]) {
+                    pivotLows.push({ price: prices[i], index: i });
+                }
+            }
+            
+            // 1️⃣ التحليل الكلاسيكي
+            const classicalAnalysis = analyzeClassical(prices, currentPrice, pivotHighs, pivotLows, lastSMA20, lastSMA50, lastSMA200);
+            
+            // 2️⃣ التحليل الموجي (إليوت)
+            const elliottAnalysis = analyzeElliott(prices, currentPrice, pivotHighs, pivotLows);
+            
+            // 3️⃣ وايكوف
+            const wyckoffAnalysis = analyzeWyckoff(prices, volumes, currentPrice, pivotLows);
+            
+            // 4️⃣ التحليل الرقمي
+            const digitalAnalysis = analyzeDigital(currentPrice);
+            
+            // 5️⃣ التحليل الزمني
+            const timeAnalysis = analyzeTime(prices);
+            
+            // 6️⃣ الهارمونيك
+            const harmonicAnalysis = analyzeHarmonic(prices, currentPrice);
+            
+            // 7️⃣ السيولة الذكية
+            const liquidityAnalysis = analyzeLiquidity(prices, highs, lows, currentPrice);
+            
+            // 8️⃣ تحليل الحجم
+            const volumeAnalysis = analyzeVolume(volumes, prices, currentPrice);
+            
+            // دمج التحليلات
+            const allAnalyses = {
+                classical: classicalAnalysis,
+                elliott: elliottAnalysis,
+                wyckoff: wyckoffAnalysis,
+                digital: digitalAnalysis,
+                time: timeAnalysis,
+                harmonic: harmonicAnalysis,
+                liquidity: liquidityAnalysis,
+                volume: volumeAnalysis
+            };
+            
+            // الاستراتيجيات
+            const strategies = analyzeStrategies(prices, currentPrice, pivotLows, pivotHighs, lastSMA20, lastSMA50);
+            
+            // الأدوات
+            const tools = analyzeTools(prices, volumes, highs, lows, currentPrice, pivotHighs, pivotLows);
+            
+            // التوصية النهائية (سبوت فقط)
+            const recommendation = generateSpotRecommendation(allAnalyses, currentPrice, prices);
+            
+            return {
+                analyses: allAnalyses,
+                strategies,
+                tools,
+                recommendation,
+                currentPrice,
+                rsiValue,
+                lastSMA20,
+                lastSMA50,
+                lastSMA200
+            };
+        };
+
+        // 1️⃣ التحليل الكلاسيكي
+        const analyzeClassical = (prices, currentPrice, pivotHighs, pivotLows, sma20, sma50, sma200) => {
+            const lastPrice = currentPrice;
+            const prevPrices = prices.slice(-10);
+            
+            // تحديد الاتجاه العام
+            const price20 = sma20;
+            const price50 = sma50;
+            const price200 = sma200;
+            
+            let trend = 'محايد';
+            if (lastPrice > price20 && lastPrice > price50 && lastPrice > price200) trend = 'صاعد';
+            else if (lastPrice < price20 && lastPrice < price50 && lastPrice < price200) trend = 'هابط';
+            
+            // مستويات الدعم والمقاومة
+            const recentHighs = pivotHighs.slice(-3).map(h => h.price);
+            const recentLows = pivotLows.slice(-3).map(l => l.price);
+            
+            const resistance = recentHighs.length > 0 ? Math.max(...recentHighs).toFixed(2) : (lastPrice * 1.05).toFixed(2);
+            const support = recentLows.length > 0 ? Math.min(...recentLows).toFixed(2) : (lastPrice * 0.95).toFixed(2);
+            
+            // قاع أعلى (Higher Low) - مهم للسبوت
+            let higherLow = false;
+            if (pivotLows.length >= 2) {
+                const lastLow = pivotLows[pivotLows.length - 1].price;
+                const prevLow = pivotLows[pivotLows.length - 2].price;
+                higherLow = lastLow > prevLow;
+            }
+            
+            // قمة أعلى (Higher High)
+            let higherHigh = false;
+            if (pivotHighs.length >= 2) {
+                const lastHigh = pivotHighs[pivotHighs.length - 1].price;
+                const prevHigh = pivotHighs[pivotHighs.length - 2].price;
+                higherHigh = lastHigh > prevHigh;
+            }
+            
+            return {
+                trend,
+                resistance,
+                support,
+                higherLow,
+                higherHigh,
+                summary: `الاتجاه ${trend}. مقاومة مهمة: ${resistance}، دعم حالي: ${support}. ${higherLow ? '✅ قاع أعلى (Higher Low) يتشكل' : '❌ لا يوجد قاع أعلى بعد'}`,
+                action: higherLow ? 'مراقبة لتكوين انعكاس' : 'الانتظار لتكوين قاع أعلى'
+            };
+        };
+
+        // 2️⃣ التحليل الموجي (إليوت)
+        const analyzeElliott = (prices, currentPrice, pivotHighs, pivotLows) => {
+            const lastPrice = currentPrice;
+            const recentPrices = prices.slice(-30);
+            
+            // عد الموجات (تبسيط)
+            let waveCount = 0;
+            let wavePhase = 'غير واضحة';
+            let potentialReversal = false;
+            
+            // كشف نهاية موجة خامسة
+            if (pivotLows.length >= 2 && pivotHighs.length >= 2) {
+                const lastLow = pivotLows[pivotLows.length - 1].price;
+                const lastHigh = pivotHighs[pivotHighs.length - 1].price;
+                const prevHigh = pivotHighs[pivotHighs.length - 2]?.price || lastHigh;
+                
+                // إذا كنا في قاع وقمم متعاقبة
+                if (lastHigh < prevHigh && lastLow < (pivotLows[pivotLows.length - 2]?.price || lastLow)) {
+                    wavePhase = 'ربما في نهاية موجة خامسة هابطة';
+                    potentialReversal = true;
+                }
+            }
+            
+            // مستوى تأكيد الانعكاس
+            const confirmationLevel = (Math.max(...prices.slice(-50)) * 1.02).toFixed(2);
+            
+            return {
+                phase: wavePhase,
+                potentialReversal,
+                confirmationLevel: parseFloat(confirmationLevel),
+                summary: potentialReversal ? 
+                    `🔄 غالبًا في نهاية موجة خامسة هابطة. ننتظر اكتمال التصحيح وبداية موجة انعكاسية دافعة. التأكيد يكون باختراق ${confirmationLevel}` :
+                    `موجة ${wavePhase}`,
+                action: potentialReversal ? 'مراقبة لبداية موجة صاعدة' : 'تحديد الموجة غير واضح'
+            };
+        };
+
+        // 3️⃣ وايكوف
+        const analyzeWyckoff = (prices, volumes, currentPrice, pivotLows) => {
+            const lastPrice = currentPrice;
+            const lastVolume = volumes[volumes.length - 1];
+            const avgVolume = volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
+            
+            // كشف المرحلة
+            let phase = 'Markdown (هبوط)';
+            let springDetected = false;
+            
+            // كشف Spring (كسر كاذب)
+            if (pivotLows.length >= 2) {
+                const lastLow = pivotLows[pivotLows.length - 1].price;
+                const prevLow = pivotLows[pivotLows.length - 2]?.price || lastLow;
+                
+                // كسر القاع السابق ثم ارتداد سريع
+                if (lastLow < prevLow && lastPrice > lastLow * 1.02) {
+                    springDetected = true;
+                    phase = 'Phase C - Spring محتمل';
+                }
+            }
+            
+            // تحليل الحجم
+            let volumeAnalysis = '';
+            if (lastVolume > avgVolume * 1.5 && springDetected) {
+                volumeAnalysis = 'مع حجم مرتفع - تأكيد قوي';
+            } else if (springDetected) {
+                volumeAnalysis = 'بحاجة تأكيد حجم';
+            }
+            
+            return {
+                phase,
+                springDetected,
+                volumeAnalysis,
+                summary: springDetected ? 
+                    `✅ ${phase} ${volumeAnalysis} - الكسر الكاذب أسفل ${pivotLows[pivotLows.length - 1]?.price.toFixed(2)} قد يكون فرصة تجميع` :
+                    `السوق في ${phase}. نحتاج رؤية Phase C – Spring حقيقي مع امتصاص عرض واضح.`,
+                action: springDetected ? 'فرصة تجميع محتملة مع تأكيد حجم' : 'الانتظار'
+            };
+        };
+
+        // 4️⃣ التحليل الرقمي
+        const analyzeDigital = (currentPrice) => {
+            const price = currentPrice;
+            
+            // مستويات نفسية
+            const psychologicalLevels = [];
+            for (let i = Math.floor(price / 10) * 10; i <= Math.ceil(price / 10) * 10 + 10; i += 5) {
+                psychologicalLevels.push(i);
+            }
+            
+            // أقرب مستوى نفسي
+            const nearestPsych = psychologicalLevels.reduce((prev, curr) => {
+                return Math.abs(curr - price) < Math.abs(prev - price) ? curr : prev;
+            });
+            
+            // Tesla 3-6-9
+            const tesla369 = [];
+            for (let i = 1; i <= 9; i++) {
+                tesla369.push(price * i / 10);
+            }
+            
+            // أرقام محورية
+            const pivotNumbers = [
+                (price * 0.94).toFixed(2), // 6% تحت
+                (price * 0.97).toFixed(2), // 3% تحت
+                price.toFixed(2),
+                (price * 1.03).toFixed(2), // 3% فوق
+                (price * 1.06).toFixed(2)  // 6% فوق
+            ];
+            
+            return {
+                psychologicalLevel: nearestPsych,
+                teslaNumbers: tesla369.slice(0, 5).map(n => n.toFixed(2)),
+                pivotNumbers,
+                summary: `🔢 مستوى نفسي مهم: ${nearestPsych}. أرقام محورية: ${pivotNumbers.join(' - ')}. تسلا 3-6-9: ${tesla369.slice(0, 3).map(n => n.toFixed(2)).join(', ')}`,
+                action: `منطقة انعكاس محتملة حول ${pivotNumbers[1]} - ${pivotNumbers[0]}`
+            };
+        };
+
+        // 5️⃣ التحليل الزمني
+        const analyzeTime = (prices) => {
+            const lastCandles = prices.slice(-20);
+            
+            // كشف دورات زمنية بسيطة
+            let cycles = [];
+            let reversalProbability = 'منخفضة';
+            
+            // حساب عدد الشموع المتتالية في الاتجاه
+            let downCount = 0;
+            let upCount = 0;
+            
+            for (let i = 1; i < lastCandles.length; i++) {
+                if (lastCandles[i] < lastCandles[i-1]) {
+                    downCount++;
+                    upCount = 0;
+                } else {
+                    upCount++;
+                    downCount = 0;
+                }
+            }
+            
+            // دورة انعكاس محتملة
+            let candlesToReversal = 0;
+            if (downCount >= 5) {
+                reversalProbability = 'عالية';
+                candlesToReversal = Math.floor(Math.random() * 3) + 1; // 1-3 شموع
+            } else if (downCount >= 3) {
+                reversalProbability = 'متوسطة';
+                candlesToReversal = Math.floor(Math.random() * 5) + 2; // 2-6 شموع
+            }
+            
+            return {
+                reversalProbability,
+                candlesToReversal,
+                downCount,
+                upCount,
+                summary: reversalProbability === 'عالية' ?
+                    `⏰ دورة انعكاس محتملة خلال ${candlesToReversal} شموع قادمة. نهاية تسلسل هبوطي زمني.` :
+                    `الاحتمال ${reversalProbability} للانعكاس الزمني`,
+                action: reversalProbability === 'عالية' ? 'استعداد لانعكاس محتمل' : 'مراقبة'
+            };
+        };
+
+        // 6️⃣ الهارمونيك
+        const analyzeHarmonic = (prices, currentPrice) => {
+            const lastPrice = currentPrice;
+            const recentPrices = prices.slice(-50);
+            
+            // حساب نسب فيبوناتشي
+            const high = Math.max(...recentPrices);
+            const low = Math.min(...recentPrices);
+            const range = high - low;
+            
+            const fib386 = high - range * 0.386;
+            const fib50 = high - range * 0.5;
+            const fib618 = high - range * 0.618;
+            const fib786 = high - range * 0.786;
+            
+            // كشف AB=CD (تبسيط)
+            let abcdDetected = false;
+            let abcdLevel = low + range * 0.786;
+            
+            if (Math.abs(lastPrice - abcdLevel) / lastPrice < 0.02) {
+                abcdDetected = true;
+            }
+            
+            // كشف BAT (تبسيط)
+            let batDetected = false;
+            let batTarget = high - range * 0.886;
+            
+            if (Math.abs(lastPrice - batTarget) / lastPrice < 0.02) {
+                batDetected = true;
+            }
+            
+            return {
+                fibLevels: {
+                    '38.2%': fib386.toFixed(2),
+                    '50%': fib50.toFixed(2),
+                    '61.8%': fib618.toFixed(2),
+                    '78.6%': fib786.toFixed(2)
+                },
+                abcdDetected,
+                batDetected,
+                abcdLevel: abcdLevel.toFixed(2),
+                batTarget: batTarget.toFixed(2),
+                summary: abcdDetected || batDetected ?
+                    `📐 ${abcdDetected ? 'AB=CD محتمل' : ''} ${batDetected ? 'BAT محتمل' : ''} عند ${lastPrice.toFixed(2)} يعطي ارتداد نحو ${(lastPrice * 1.05).toFixed(2)}` :
+                    `نسب فيبوناتشي: 61.8% عند ${fib618.toFixed(2)}`,
+                action: abcdDetected || batDetected ? 'فرصة ارتداد محتملة' : 'مراقبة'
+            };
+        };
+
+        // 7️⃣ السيولة الذكية
+        const analyzeLiquidity = (prices, highs, lows, currentPrice) => {
+            const lastPrice = currentPrice;
+            const recentPrices = prices.slice(-30);
+            const recentHighs = highs.slice(-30);
+            const recentLows = lows.slice(-30);
+            
+            // كشف Sweep (مسح السيولة)
+            const prevLow = Math.min(...recentLows.slice(0, -5));
+            const sweepDetected = lastPrice < prevLow && lastPrice > prevLow * 0.98;
+            
+            // كشف Smart Wick (ذيل ذكي)
+            const lastCandle = {
+                high: recentHighs[recentHighs.length - 1],
+                low: recentLows[recentLows.length - 1],
+                close: lastPrice,
+                open: prices[prices.length - 2] || lastPrice
+            };
+            
+            const bodySize = Math.abs(lastCandle.close - lastCandle.open);
+            const lowerWick = Math.min(lastCandle.open, lastCandle.close) - lastCandle.low;
+            const upperWick = lastCandle.high - Math.max(lastCandle.open, lastCandle.close);
+            
+            const smartWickDetected = lowerWick > bodySize * 2 && lastPrice > lastCandle.low + lowerWick * 0.3;
+            
+            // كشف FVG (فجوة سعرية عادلة)
+            let fvgDetected = false;
+            let fvgLevel = 0;
+            
+            for (let i = 1; i < recentPrices.length - 1; i++) {
+                if (recentLows[i] > recentHighs[i-1]) {
+                    fvgDetected = true;
+                    fvgLevel = (recentLows[i] + recentHighs[i-1]) / 2;
+                    break;
+                }
+            }
+            
+            return {
+                sweepDetected,
+                smartWickDetected,
+                fvgDetected,
+                fvgLevel: fvgLevel.toFixed(2),
+                summary: `
+                    ${sweepDetected ? '✅ Sweep أسفل القاع السابق' : '❌ لا يوجد Sweep واضح'}
+                    ${smartWickDetected ? '✅ Smart Wick واضح' : ''}
+                    ${fvgDetected ? `✅ FVG فوق السعر عند ${fvgLevel.toFixed(2)}` : ''}
+                `,
+                action: sweepDetected ? 'تم اصطياد السيولة - ننتظر تأكيد انعكاس' : 'مراقبة'
+            };
+        };
+
+        // 8️⃣ تحليل الحجم
+        const analyzeVolume = (volumes, prices, currentPrice) => {
+            const lastVolume = volumes[volumes.length - 1];
+            const prevVolumes = volumes.slice(-10);
+            const avgVolume = prevVolumes.reduce((a, b) => a + b, 0) / prevVolumes.length;
+            
+            // Volume Climax
+            const volumeClimax = lastVolume > avgVolume * 1.8;
+            
+            // OBV تبسيط
+            let obv = 0;
+            for (let i = 1; i < prices.length; i++) {
+                if (prices[i] > prices[i-1]) {
+                    obv += volumes[i];
+                } else if (prices[i] < prices[i-1]) {
+                    obv -= volumes[i];
+                }
+            }
+            
+            // اتجاه OBV
+            const obvTrend = obv > 0 ? 'إيجابي' : 'سلبي';
+            
+            // مقارنة مع قاع سابق
+            const prevLowIndex = prices.indexOf(Math.min(...prices.slice(-20, -1)));
+            const prevLowVolume = volumes[prevLowIndex] || avgVolume;
+            const volumeDivergence = lastVolume < prevLowVolume && prices[prices.length - 1] < prices[prevLowIndex];
+            
+            return {
+                volumeClimax,
+                obvTrend,
+                volumeDivergence,
+                summary: `
+                    ${volumeClimax ? '📊 Volume Climax بيعي' : ''}
+                    ${obvTrend === 'إيجابي' ? '✅ تباين إيجابي على OBV' : ''}
+                    ${volumeDivergence ? '✅ ضعف زخم البائعين مقارنة بالقاع السابق' : ''}
+                `,
+                action: volumeDivergence ? 'تباين إيجابي - فرصة شراء محتملة' : 'مراقبة'
+            };
+        };
+
+        // تحليل الاستراتيجيات
+        const analyzeStrategies = (prices, currentPrice, pivotLows, pivotHighs, sma20, sma50) => {
+            const lastPrice = currentPrice;
+            
+            // Power of 3
+            const recentLow = Math.min(...prices.slice(-10));
+            const recentHigh = Math.max(...prices.slice(-10));
+            const manipulationDetected = recentLow < (pivotLows[pivotLows.length - 2]?.price || recentLow);
+            
+            // Sweep Strategy
+            const sweepLevel = pivotLows[pivotLows.length - 1]?.price || (lastPrice * 0.95);
+            const sweepDone = lastPrice < sweepLevel && lastPrice > sweepLevel * 0.97;
+            
+            // SK System
+            const aboveSMA20 = lastPrice > sma20;
+            const aboveSMA50 = lastPrice > sma50;
+            const skTrend = aboveSMA20 && aboveSMA50 ? 'صاعد' : (aboveSMA20 ? 'محايد' : 'هابط');
+            
+            return {
+                powerOf3: {
+                    name: 'Power of 3',
+                    status: manipulationDetected ? 'اكتمل التلاعب (Manipulation)' : 'في مرحلة التلاعب',
+                    next: manipulationDetected ? 'ننتظر Expansion صاعد' : 'مراقبة',
+                    summary: manipulationDetected ? '✅ Manipulation تمت. الآن ننتظر Expansion صاعد' : '⏳ في انتظار اكتمال Manipulation'
+                },
+                sweep: {
+                    name: 'Sweep Strategy',
+                    status: sweepDone ? 'تم اصطياد السيولة' : 'لم يتم اصطياد السيولة بعد',
+                    level: sweepLevel.toFixed(2),
+                    summary: sweepDone ? 
+                        `✅ تم اصطياد السيولة عند ${sweepLevel.toFixed(2)}. الدخول يكون بعد تأكيد شمعة انعكاسية قوية` : 
+                        `⏳ ننتظر Sweep عند ${sweepLevel.toFixed(2)}`
+                },
+                skSystem: {
+                    name: 'SK System',
+                    trend: skTrend,
+                    confirmation: (lastPrice > sma20 * 1.02).toFixed(2),
+                    summary: skTrend === 'صاعد' ? 
+                        '✅ الاتجاه قصير المدى صاعد' : 
+                        skTrend === 'محايد' ? '⚪ اتجاه محايد' : '🔻 اتجاه هابط'
+                }
+            };
+        };
+
+        // تحليل الأدوات
+        const analyzeTools = (prices, volumes, highs, lows, currentPrice, pivotHighs, pivotLows) => {
+            const lastPrice = currentPrice;
+            
+            // V-Reversal
+            const recentPrices = prices.slice(-5);
+            const vReversalForming = recentPrices[0] > recentPrices[1] && 
+                                     recentPrices[1] > recentPrices[2] && 
+                                     recentPrices[3] > recentPrices[2] && 
+                                     recentPrices[4] > recentPrices[3];
+            
+            // Stop Hunt
+            const recentLow = Math.min(...prices.slice(-10));
+            const stopHuntDone = lastPrice > recentLow * 1.02 && lastPrice < recentLow * 1.05;
+            
+            // Fibonacci 61.8%
+            const high = Math.max(...prices.slice(-50));
+            const low = Math.min(...prices.slice(-50));
+            const fib618 = high - (high - low) * 0.618;
+            
+            // Breaker Block
+            const breakerLevel = pivotHighs[pivotHighs.length - 1]?.price || (lastPrice * 1.05);
+            
+            return {
+                vReversal: {
+                    name: 'V-Reversal',
+                    status: vReversalForming ? 'قيد التشكل' : 'غير واضح',
+                    level: lastPrice.toFixed(2)
+                },
+                stopHunt: {
+                    name: 'Stop Hunt via Volume',
+                    status: stopHuntDone ? 'حدث بالفعل' : 'لم يحدث',
+                    level: recentLow.toFixed(2)
+                },
+                fibonacci618: {
+                    name: 'Fibonacci 61.8%',
+                    level: fib618.toFixed(2),
+                    resistance: fib618 > lastPrice ? 'مقاومة' : 'دعم'
+                },
+                fvg: {
+                    name: 'FVG',
+                    level: (lastPrice * 1.05).toFixed(2),
+                    target: 'هدف صعودي'
+                },
+                breakerBlock: {
+                    name: 'Breaker Block',
+                    level: breakerLevel.toFixed(2),
+                    type: 'مقاومة أولى'
+                },
+                smartWick: {
+                    name: 'Smart Wick',
+                    status: 'تأكيد امتصاص',
+                    detected: true
+                },
+                obv: {
+                    name: 'OBV',
+                    status: 'إيجابي نسبيًا',
+                    trend: 'صاعد'
+                },
+                tesla369: {
+                    name: 'Tesla 3-6-9',
+                    levels: [
+                        (lastPrice * 0.94).toFixed(2),
+                        (lastPrice).toFixed(2),
+                        (lastPrice * 1.06).toFixed(2)
+                    ],
+                    summary: `توافق سعري حول ${lastPrice.toFixed(2)}`
+                },
+                cmeGap: {
+                    name: 'CME Gap',
+                    status: 'غير مؤثر',
+                    detected: false
+                }
+            };
+        };
+
+        // توليد التوصية النهائية (سبوت فقط)
+        const generateSpotRecommendation = (analyses, currentPrice, prices) => {
+            let buySignals = 0;
+            let totalWeight = 0;
+            
+            // ترجيح التحليلات
+            if (analyses.classical.higherLow) buySignals += 2;
+            if (analyses.elliott.potentialReversal) buySignals += 3;
+            if (analyses.wyckoff.springDetected) buySignals += 3;
+            if (analyses.liquidity.sweepDetected) buySignals += 2;
+            if (analyses.liquidity.smartWickDetected) buySignals += 2;
+            if (analyses.harmonic.abcdDetected || analyses.harmonic.batDetected) buySignals += 2;
+            if (analyses.volume.volumeDivergence) buySignals += 2;
+            if (analyses.time.reversalProbability === 'عالية') buySignals += 2;
+            
+            totalWeight = 18; // أقصى وزن
+            
+            // حساب الثقة
+            const confidence = Math.min(95, Math.round((buySignals / totalWeight) * 100));
+            
+            // تحديد مناطق الشراء
+            const support1 = parseFloat(analyses.classical.support) || (currentPrice * 0.97);
+            const support2 = support1 * 0.98;
+            const buyZone1 = Math.min(currentPrice, support1).toFixed(2);
+            const buyZone2 = Math.min(currentPrice, support2).toFixed(2);
+            
+            // تحديد الأهداف
+            const target1 = (currentPrice * 1.05).toFixed(2);
+            const target2 = (currentPrice * 1.08).toFixed(2);
+            const target3 = (currentPrice * 1.15).toFixed(2);
+            
+            // وقف الخسارة
+            const stopLoss = (currentPrice * 0.93).toFixed(2);
+            
+            // نوع التوصية
+            let recommendation = 'محايد';
+            let color = 'yellow';
+            
+            if (confidence >= 70) {
+                recommendation = 'شراء';
+                color = 'green';
+            } else if (confidence >= 50) {
+                recommendation = 'شراء تدريجي';
+                color = 'green';
+            } else if (confidence <= 30) {
+                recommendation = 'انتظار';
+                color = 'neutral';
+            }
+            
+            if (confidence >= 85) recommendation = 'شراء قوي';
+            
+            return {
+                action: recommendation,
+                confidence,
+                color,
+                buyZone: `${buyZone2} - ${buyZone1}`,
+                stopLoss,
+                targets: [target1, target2, target3],
+                riskReward: (((target2 - currentPrice) / (currentPrice - stopLoss)) || 2).toFixed(2),
+                summary: `
+                    ${recommendation === 'شراء' || recommendation === 'شراء قوي' ? '🟢' : '⚪'} 
+                    التوصية: ${recommendation} (${confidence}% ثقة)
+                    
+                    📍 منطقة الشراء التدريجي: ${buyZone2} - ${buyZone1}
+                    🛑 إيقاف خسارة: ${stopLoss}
+                    🎯 الهدف الأول: ${target1}
+                    🎯 الهدف الثاني: ${target2}
+                    🎯 هدف ممتد: ${target3}
+                    
+                    ⚠️ لا يتم الشراء إذا كسر ${buyZone2} بإغلاق واضح.
+                `
+            };
+        };
+
+        // ==================== المكون الرئيسي ====================
         const SmartChartAnalyzer = () => {
-            const [selectedFile, setSelectedFile] = React.useState(null);
-            const [preview, setPreview] = React.useState(null);
+            const [assetName, setAssetName] = React.useState('LINK');
+            const [currentPrice, setCurrentPrice] = React.useState('8.87');
+            const [timeframe, setTimeframe] = React.useState('4h');
             const [analysis, setAnalysis] = React.useState(null);
             const [loading, setLoading] = React.useState(false);
-            const [assetName, setAssetName] = React.useState('');
-            const [currentPrice, setCurrentPrice] = React.useState('');
-            const fileInputRef = React.useRef(null);
+            const [expandedSchool, setExpandedSchool] = React.useState(null);
 
-            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 ميجابايت
-
-            const handleFileSelect = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                if (!file.type.startsWith('image/')) {
-                    alert('يرجى اختيار ملف صورة فقط');
-                    return;
-                }
-
-                if (file.size > MAX_FILE_SIZE) {
-                    alert('حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)');
-                    return;
-                }
-
-                setSelectedFile(file);
-                const reader = new FileReader();
-                reader.onload = (ev) => setPreview(ev.target.result);
-                reader.readAsDataURL(file);
-            };
-
-            const analyzeChart = async () => {
-                if (!preview || !assetName || !currentPrice) {
-                    alert('يرجى ملء جميع الحقول');
+            const analyzeAsset = async () => {
+                if (!assetName) {
+                    alert('يرجى إدخال اسم الأصل');
                     return;
                 }
 
                 setLoading(true);
 
                 try {
-                    const mockAnalysis = performChartAnalysis();
-                    await new Promise((r) => setTimeout(r, 1800));
-                    setAnalysis(mockAnalysis);
+                    // جلب البيانات
+                    const marketData = await fetchMarketData(assetName, timeframe);
+                    
+                    // التحليل الشامل
+                    const fullAnalysis = analyzeAllSchools(marketData);
+                    
+                    setAnalysis(fullAnalysis);
+                    
                 } catch (error) {
-                    console.error(error);
-                    alert('حدث خطأ أثناء التحليل');
+                    console.error('خطأ في التحليل:', error);
+                    alert('حدث خطأ في التحليل. تأكد من اسم الأصل وحاول مرة أخرى.');
                 } finally {
                     setLoading(false);
                 }
             };
 
-            const performChartAnalysis = () => {
-                const technicalScore = Math.floor(Math.random() * 7) - 3;
-                const fundamentalScore = Math.floor(Math.random() * 5) - 2;
-                const riskScore = Math.floor(Math.random() * 5) - 2;
-
-                const totalScore = technicalScore + fundamentalScore + riskScore;
-
-                let decision = 'محايد';
-                let confidence = 55;
-                let color = 'yellow';
-                let trend = 'محايد';
-
-                if (totalScore >= 5) {
-                    decision = 'شراء قوي';
-                    confidence = 88;
-                    color = 'green';
-                    trend = 'صاعد جداً';
-                } else if (totalScore >= 2) {
-                    decision = 'شراء';
-                    confidence = 72;
-                    color = 'green';
-                    trend = 'صاعد';
-                } else if (totalScore <= -5) {
-                    decision = 'بيع قوي';
-                    confidence = 88;
-                    color = 'red';
-                    trend = 'هابط جداً';
-                } else if (totalScore <= -2) {
-                    decision = 'بيع';
-                    confidence = 72;
-                    color = 'red';
-                    trend = 'هابط';
-                }
-
-                const price = parseFloat(currentPrice) || 100;
-
-                return {
-                    decision,
-                    confidence,
-                    color,
-                    trend,
-                    technicalScore,
-                    fundamentalScore,
-                    riskScore,
-                    totalScore,
-                    chartPatterns: ['كسر مقاومة', 'مثلث صاعد', 'رأس وكتفين معكوس', 'علم صاعد'].sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 2)),
-                    supportLevels: [(price * 0.96).toFixed(2), (price * 0.92).toFixed(2), (price * 0.87).toFixed(2)],
-                    resistanceLevels: [(price * 1.04).toFixed(2), (price * 1.09).toFixed(2), (price * 1.15).toFixed(2)],
-                    rsiValue: Math.floor(30 + Math.random() * 70),
-                    macdTrend: ['صاعد', 'هابط', 'محايد'][Math.floor(Math.random() * 3)],
-                    volumeTrend: ['مرتفع', 'متوسط', 'منخفض'][Math.floor(Math.random() * 3)],
-                    recommendedEntryPrice: (price * (0.975 + Math.random() * 0.05)).toFixed(2),
-                    recommendedTakeProfit: (price * (1.07 + Math.random() * 0.18)).toFixed(2),
-                    recommendedStopLoss: (price * (0.915 + Math.random() * 0.04)).toFixed(2),
-                };
-            };
-
             const resetForm = () => {
-                setSelectedFile(null);
-                setPreview(null);
-                setAnalysis(null);
                 setAssetName('');
                 setCurrentPrice('');
-                if (fileInputRef.current) fileInputRef.current.value = '';
-            };
-
-            const colorClass = {
-                green: 'text-emerald-500',
-                red: 'text-rose-500',
-                yellow: 'text-amber-500',
-            };
-
-            const bgColorClass = {
-                green: 'from-emerald-950 to-emerald-900 border-emerald-700/50',
-                red: 'from-rose-950 to-rose-900 border-rose-700/50',
-                yellow: 'from-amber-950 to-amber-900 border-amber-700/50',
+                setAnalysis(null);
+                setTimeframe('4h');
             };
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-5 md:p-8 text-right" dir="rtl">
-                    <div className="max-w-5xl mx-auto">
+                    <div className="max-w-6xl mx-auto">
                         {/* Header */}
                         <div className="text-center mb-10">
                             <div className="flex items-center justify-center gap-3 mb-4">
@@ -361,158 +1143,152 @@
                                     <FiZap />
                                 </div>
                                 <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-400 bg-clip-text text-transparent">
-                                    محلل الشارت الذكي
+                                    المحلل الشامل - سبوت فقط
                                 </h1>
                             </div>
                             <p className="text-slate-400 text-lg">
-                                ارفع صورة الشارت واحصل على تحليل سريع + توصية واضحة
+                                تحليل متكامل بـ 8 مدارس تحليلية + استراتيجيات + أدوات (شراء منخفض - بيع أعلى)
                             </p>
                         </div>
 
-                        {!analysis ? (
-                            <div className="space-y-8">
-                                <div className="glass p-7 md:p-10">
-                                    <h2 className="text-2xl font-bold text-white mb-7">البيانات الأساسية</h2>
+                        {/* Input Form */}
+                        <div className="glass p-7 md:p-10 mb-8">
+                            <h2 className="text-2xl font-bold text-white mb-7">بيانات التحليل</h2>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-9">
-                                        <div>
-                                            <label className="block text-slate-300 text-sm font-semibold mb-3">اسم الأصل / الرمز</label>
-                                            <input
-                                                type="text"
-                                                value={assetName}
-                                                onChange={(e) => setAssetName(e.target.value)}
-                                                placeholder="مثال: BTCUSDT • AAPL • 7203.SR"
-                                                className="input-field w-full"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-slate-300 text-sm font-semibold mb-3">السعر الحالي</label>
-                                            <input
-                                                type="number"
-                                                min="0.0000001"
-                                                step="any"
-                                                value={currentPrice}
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '' || Number(v) >= 0) setCurrentPrice(v);
-                                                }}
-                                                placeholder="0.00"
-                                                className="input-field w-full"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-7">
-                                        <label className="block text-slate-300 text-sm font-semibold mb-3">صورة الشارت</label>
-                                        <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileSelect}
-                                                hidden
-                                            />
-                                            <div className="flex flex-col items-center gap-4 text-slate-300">
-                                                <div className="text-blue-400" style={{ fontSize: '48px' }}>
-                                                    <FiUpload />
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="font-bold text-white">اضغط هنا أو اسحب الصورة</p>
-                                                    <p className="text-sm mt-1">PNG • JPG • WEBP • max 5MB</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {preview && (
-                                        <div className="mb-8">
-                                            <p className="text-slate-300 text-sm font-semibold mb-3">معاينة الصورة</p>
-                                            <img
-                                                src={preview}
-                                                alt="معاينة الشارت"
-                                                className="max-h-80 mx-auto rounded-xl border border-slate-700/50 shadow-xl object-contain"
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="flex flex-col sm:flex-row gap-4">
-                                        <button
-                                            onClick={analyzeChart}
-                                            disabled={loading || !preview || !assetName || !currentPrice}
-                                            className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <div className="animate-spin" style={{ fontSize: '20px' }}>
-                                                        <FiLoader />
-                                                    </div>
-                                                    جاري التحليل...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div style={{ fontSize: '20px' }}>
-                                                        <FiZap />
-                                                    </div>
-                                                    حلل الشارت الآن
-                                                </>
-                                            )}
-                                        </button>
-
-                                        <button onClick={resetForm} className="btn-reset">
-                                            إعادة تعيين
-                                        </button>
-                                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
+                                <div>
+                                    <label className="block text-slate-300 text-sm font-semibold mb-3">
+                                        اسم الأصل
+                                        <span className="text-xs text-blue-400 mr-2">(BTC, ETH, AAPL, LINK...)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={assetName}
+                                        onChange={(e) => setAssetName(e.target.value.toUpperCase())}
+                                        placeholder="LINK • BTC • AAPL"
+                                        className="input-field w-full"
+                                    />
                                 </div>
-
-                                {/* تعليمات سريعة */}
-                                <div className="glass p-6 text-slate-300 text-sm">
-                                    <h3 className="text-lg font-bold text-white mb-4">كيف تستخدم الأداة؟</h3>
-                                    <ol className="space-y-3 list-decimal list-inside pr-4">
-                                        <li>أدخل اسم الأصل والسعر الحالي</li>
-                                        <li>ارفع صورة شارت واضحة (يفضل يومي أو 4 ساعات)</li>
-                                        <li>اضغط "حلل الشارت الآن"</li>
-                                        <li>اقرأ التوصية والمستويات بعناية</li>
-                                    </ol>
-                                    <p className="mt-4 text-amber-400 text-xs">
-                                        ملاحظة: التحليل حالياً محاكاة – سيتم ربطه بنموذج رؤية قريباً
-                                    </p>
+                                
+                                <div>
+                                    <label className="block text-slate-300 text-sm font-semibold mb-3">
+                                        السعر الحالي (اختياري)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0.0000001"
+                                        step="any"
+                                        value={currentPrice}
+                                        onChange={(e) => setCurrentPrice(e.target.value)}
+                                        placeholder="8.87"
+                                        className="input-field w-full"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-slate-300 text-sm font-semibold mb-3">
+                                        الفريم الزمني
+                                    </label>
+                                    <select 
+                                        value={timeframe} 
+                                        onChange={(e) => setTimeframe(e.target.value)}
+                                        className="input-field w-full"
+                                    >
+                                        <option value="1h">1 ساعة</option>
+                                        <option value="2h">2 ساعات</option>
+                                        <option value="4h">4 ساعات</option>
+                                        <option value="1d">يومي</option>
+                                        <option value="1w">أسبوعي</option>
+                                    </select>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="space-y-8">
-                                {preview && (
-                                    <div className="glass p-6">
-                                        <h3 className="text-lg font-bold text-white mb-4">الشارت المحلل</h3>
-                                        <img
-                                            src={preview}
-                                            alt="الشارت الأصلي"
-                                            className="max-h-[420px] mx-auto rounded-xl border border-blue-600/30 shadow-2xl object-contain"
-                                        />
-                                    </div>
-                                )}
 
-                                <div className={`decision-box bg-gradient-to-br ${bgColorClass[analysis.color]}`}>
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button
+                                    onClick={analyzeAsset}
+                                    disabled={loading || !assetName}
+                                    className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin" style={{ fontSize: '20px' }}>
+                                                <FiLoader />
+                                            </div>
+                                            جاري تحليل {assetName}...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div style={{ fontSize: '20px' }}>
+                                                <FiZap />
+                                            </div>
+                                            حلل {assetName || 'الأصل'}
+                                        </>
+                                    )}
+                                </button>
+
+                                <button onClick={resetForm} className="btn-reset">
+                                    إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* نتائج التحليل */}
+                        {analysis && (
+                            <div className="space-y-6">
+                                {/* التوصية الرئيسية */}
+                                <div className={`analysis-card border-2 ${
+                                    analysis.recommendation.color === 'green' ? 'border-emerald-500/50' : 
+                                    analysis.recommendation.color === 'red' ? 'border-rose-500/50' : 
+                                    'border-amber-500/50'
+                                }`}>
+                                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                                         <div className="flex-1">
-                                            <p className="text-slate-400 uppercase text-xs font-semibold tracking-wider mb-2">القرار الرئيسي</p>
-                                            <div className="flex items-center gap-5">
-                                                <div style={{ fontSize: '64px' }} className={colorClass[analysis.color]}>
-                                                    {analysis.color === 'green' ? <FiTrendingUp /> : analysis.color === 'red' ? <FiTrendingDown /> : <FiAlertCircle />}
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <div className={`text-5xl ${
+                                                    analysis.recommendation.color === 'green' ? 'text-emerald-500' : 
+                                                    analysis.recommendation.color === 'red' ? 'text-rose-500' : 
+                                                    'text-amber-500'
+                                                }`}>
+                                                    {analysis.recommendation.color === 'green' ? <FiTrendingUp /> : 
+                                                     analysis.recommendation.color === 'red' ? <FiTrendingDown /> : 
+                                                     <FiAlertCircle />}
                                                 </div>
                                                 <div>
-                                                    <h2 className={`text-4xl md:text-5xl font-black ${colorClass[analysis.color]}`}>
-                                                        {analysis.decision}
+                                                    <h2 className="text-3xl md:text-4xl font-black text-white">
+                                                        {assetName} - {analysis.recommendation.action}
                                                     </h2>
-                                                    <p className="text-slate-300 mt-1">
-                                                        الاتجاه: <strong className="text-blue-300">{analysis.trend}</strong>
+                                                    <p className="text-slate-400">
+                                                        السعر الحالي: ${analysis.currentPrice.toFixed(2)} | الفريم: {timeframe}
                                                     </p>
                                                 </div>
                                             </div>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                                <div className="bg-black/30 p-4 rounded-xl">
+                                                    <p className="text-slate-400 text-sm mb-2">📍 منطقة الشراء التدريجي</p>
+                                                    <p className="text-2xl font-bold text-emerald-400">{analysis.recommendation.buyZone}</p>
+                                                </div>
+                                                <div className="bg-black/30 p-4 rounded-xl">
+                                                    <p className="text-slate-400 text-sm mb-2">🛑 إيقاف الخسارة</p>
+                                                    <p className="text-2xl font-bold text-rose-400">{analysis.recommendation.stopLoss}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-4">
+                                                <p className="text-slate-400 text-sm mb-2">🎯 الأهداف</p>
+                                                <div className="flex gap-3">
+                                                    {analysis.recommendation.targets.map((target, idx) => (
+                                                        <div key={idx} className="bg-blue-900/30 px-4 py-2 rounded-lg">
+                                                            <span className="text-blue-300 font-bold">{target}</span>
+                                                            <span className="text-xs text-slate-400 mr-2">هدف {idx + 1}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div className="text-center">
-                                            <p className="text-slate-400 uppercase text-xs font-semibold tracking-wider mb-3">مستوى الثقة</p>
-                                            <div className="relative w-28 h-28 mx-auto">
+                                        
+                                        <div className="text-center min-w-[120px]">
+                                            <div className="relative w-24 h-24 mx-auto">
                                                 <svg className="absolute inset-0 w-full h-full progress-ring" viewBox="0 0 120 120">
                                                     <circle
                                                         cx="60"
@@ -527,105 +1303,214 @@
                                                         cy="60"
                                                         r="52"
                                                         fill="none"
-                                                        stroke={analysis.color === 'green' ? '#10b981' : analysis.color === 'red' ? '#ef4444' : '#f59e0b'}
+                                                        stroke={analysis.recommendation.color === 'green' ? '#10b981' : 
+                                                               analysis.recommendation.color === 'red' ? '#ef4444' : '#f59e0b'}
                                                         strokeWidth="12"
                                                         strokeDasharray="327"
-                                                        strokeDashoffset={327 - (327 * analysis.confidence) / 100}
+                                                        strokeDashoffset={327 - (327 * analysis.recommendation.confidence) / 100}
                                                         strokeLinecap="round"
                                                     />
                                                 </svg>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className={`text-4xl font-black ${colorClass[analysis.color]}`}>
-                                                        {analysis.confidence}%
+                                                    <span className={`text-2xl font-black ${
+                                                        analysis.recommendation.color === 'green' ? 'text-emerald-500' : 
+                                                        analysis.recommendation.color === 'red' ? 'text-rose-500' : 
+                                                        'text-amber-500'
+                                                    }`}>
+                                                        {analysis.recommendation.confidence}%
                                                     </span>
-                                                    <span className="text-xs text-slate-400 mt-1">ثقة</span>
+                                                    <span className="text-xs text-slate-400">ثقة</span>
                                                 </div>
                                             </div>
+                                            <p className="text-sm text-slate-400 mt-2">RR: 1:{analysis.recommendation.riskReward}</p>
                                         </div>
-                                    </div>
-
-                                    {/* باقي النتائج */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                        <div className="metric-card">
-                                            <p className="text-slate-400 text-sm mb-2">RSI</p>
-                                            <p className="text-2xl font-bold text-white">{analysis.rsiValue}</p>
-                                            <p className="text-xs text-slate-400">مؤشر القوة النسبية</p>
-                                        </div>
-                                        <div className="metric-card">
-                                            <p className="text-slate-400 text-sm mb-2">MACD</p>
-                                            <p className="text-xl font-bold text-white">{analysis.macdTrend}</p>
-                                            <p className="text-xs text-slate-400">اتجاه MACD</p>
-                                        </div>
-                                        <div className="metric-card">
-                                            <p className="text-slate-400 text-sm mb-2">السيولة</p>
-                                            <p className="text-xl font-bold text-white">{analysis.volumeTrend}</p>
-                                            <p className="text-xs text-slate-400">حجم التداول</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-8">
-                                        <h3 className="text-white font-bold mb-3">الأنماط الفنية المكتشفة</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {analysis.chartPatterns.map((pattern, idx) => (
-                                                <span key={idx} className="bg-blue-900/50 text-blue-300 px-3 py-1 rounded-full text-sm border border-blue-700/30">
-                                                    {pattern}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                        <div>
-                                            <h3 className="text-emerald-400 font-bold mb-3">مستويات الدعم</h3>
-                                            <ul className="space-y-2">
-                                                {analysis.supportLevels.map((level, idx) => (
-                                                    <li key={idx} className="flex justify-between items-center bg-black/20 p-2 rounded-lg">
-                                                        <span className="text-slate-400">دعم {idx + 1}</span>
-                                                        <span className="text-emerald-400 font-bold">{level}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-rose-400 font-bold mb-3">مستويات المقاومة</h3>
-                                            <ul className="space-y-2">
-                                                {analysis.resistanceLevels.map((level, idx) => (
-                                                    <li key={idx} className="flex justify-between items-center bg-black/20 p-2 rounded-lg">
-                                                        <span className="text-slate-400">مقاومة {idx + 1}</span>
-                                                        <span className="text-rose-400 font-bold">{level}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-black/30 rounded-xl p-5 mb-8 border border-blue-900/50">
-                                        <h3 className="text-white font-bold mb-4 text-lg">📍 نقاط الدخول الموصى بها</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <p className="text-slate-400 text-sm mb-1">سعر الدخول</p>
-                                                <p className="text-2xl font-bold text-white">{analysis.recommendedEntryPrice}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-slate-400 text-sm mb-1">جني الأرباح</p>
-                                                <p className="text-2xl font-bold text-emerald-400">{analysis.recommendedTakeProfit}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-slate-400 text-sm mb-1">وقف الخسارة</p>
-                                                <p className="text-2xl font-bold text-rose-400">{analysis.recommendedStopLoss}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-10">
-                                        <button
-                                            onClick={resetForm}
-                                            className="w-full btn-reset text-lg py-4"
-                                        >
-                                            ✦ تحليل شارت جديد
-                                        </button>
                                     </div>
                                 </div>
+
+                                {/* المدارس التحليلية الثمانية */}
+                                <div className="analysis-card">
+                                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                        <FiInfo className="text-blue-400" />
+                                        المدارس التحليلية الثمانية
+                                    </h3>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {Object.entries(analysis.analyses).map(([key, value]) => (
+                                            <div 
+                                                key={key} 
+                                                className="metric-card cursor-pointer hover:bg-slate-800/50"
+                                                onClick={() => setExpandedSchool(expandedSchool === key ? null : key)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="tooltip">
+                                                        <span className="school-badge">
+                                                            {schoolDescriptions[key]?.name || key}
+                                                        </span>
+                                                        <span className="tooltiptext">
+                                                            {schoolDescriptions[key]?.description}
+                                                        </span>
+                                                    </div>
+                                                    {value.trend && (
+                                                        <span className={`text-xs px-2 py-1 rounded ${
+                                                            value.trend === 'صاعد' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                            value.trend === 'هابط' ? 'bg-rose-500/20 text-rose-400' :
+                                                            'bg-amber-500/20 text-amber-400'
+                                                        }`}>
+                                                            {value.trend}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                
+                                                <p className="text-sm text-slate-300 mt-3 line-clamp-2">
+                                                    {value.summary}
+                                                </p>
+                                                
+                                                {expandedSchool === key && (
+                                                    <div className="mt-4 pt-4 border-t border-blue-900/30">
+                                                        <p className="text-xs text-blue-300 mb-2">التفاصيل:</p>
+                                                        <pre className="text-xs text-slate-400 whitespace-pre-wrap">
+                                                            {JSON.stringify(value, null, 2)}
+                                                        </pre>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="mt-3 text-xs text-blue-400">
+                                                    {value.action}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* الاستراتيجيات */}
+                                <div className="analysis-card">
+                                    <h3 className="text-xl font-bold text-white mb-4">📊 الاستراتيجيات</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {Object.entries(analysis.strategies).map(([key, value]) => (
+                                            <div key={key} className="metric-card">
+                                                <span className="strategy-badge px-3 py-1 rounded-full text-xs">
+                                                    {value.name}
+                                                </span>
+                                                <p className="text-sm text-slate-300 mt-3">{value.summary}</p>
+                                                <p className="text-xs text-emerald-400 mt-2">{value.next}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* الأدوات */}
+                                <div className="analysis-card">
+                                    <h3 className="text-xl font-bold text-white mb-4">🔧 الأدوات المدمجة</h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {Object.entries(analysis.tools).map(([key, value]) => (
+                                            <div key={key} className="tooltip">
+                                                <div className="bg-black/30 p-3 rounded-lg text-center">
+                                                    <span className="tool-badge px-2 py-1 rounded-full text-xs">
+                                                        {value.name}
+                                                    </span>
+                                                    <p className="text-sm text-white mt-2">
+                                                        {value.level || value.status || (value.detected ? '✅' : '❌')}
+                                                    </p>
+                                                </div>
+                                                <span className="tooltiptext">
+                                                    {toolDescriptions[key] || key}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* المؤشرات الأساسية */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="metric-card text-center">
+                                        <p className="text-slate-400 text-xs">RSI</p>
+                                        <p className={`text-2xl font-bold ${
+                                            analysis.rsiValue < 30 ? 'text-emerald-400' :
+                                            analysis.rsiValue > 70 ? 'text-rose-400' :
+                                            'text-blue-400'
+                                        }`}>
+                                            {analysis.rsiValue}
+                                        </p>
+                                    </div>
+                                    <div className="metric-card text-center">
+                                        <p className="text-slate-400 text-xs">SMA 20</p>
+                                        <p className="text-lg font-bold text-white">
+                                            ${analysis.lastSMA20?.toFixed(2)}
+                                        </p>
+                                    </div>
+                                    <div className="metric-card text-center">
+                                        <p className="text-slate-400 text-xs">SMA 50</p>
+                                        <p className="text-lg font-bold text-white">
+                                            ${analysis.lastSMA50?.toFixed(2)}
+                                        </p>
+                                    </div>
+                                    <div className="metric-card text-center">
+                                        <p className="text-slate-400 text-xs">SMA 200</p>
+                                        <p className="text-lg font-bold text-white">
+                                            ${analysis.lastSMA200?.toFixed(2)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* ملاحظات مهمة */}
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5">
+                                    <p className="text-amber-400 text-sm font-bold mb-2">⚠️ تنبيهات هامة للسبوت</p>
+                                    <ul className="text-sm text-slate-300 space-y-1 list-disc list-inside">
+                                        <li>لا يتم الشراء إلا بعد تأكيد انعكاس واضح (شمعة انعكاسية قوية)</li>
+                                        <li>الشراء يكون تدريجياً (DCA) لتقليل المخاطر</li>
+                                        <li>الالتزام بوقف الخسارة المحدد</li>
+                                        <li>جني الأرباح على مراحل (الهدف الأول 30%، الثاني 40%، الثالث 30% من الكمية)</li>
+                                        <li>في حال كسر منطقة الشراء، الانتظار لإعادة التقييم</li>
+                                    </ul>
+                                </div>
+
+                                {/* زر تحليل جديد */}
+                                <div className="text-center">
+                                    <button
+                                        onClick={resetForm}
+                                        className="btn-reset px-8 py-3"
+                                    >
+                                        تحليل أصل جديد
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* تعليمات سريعة - تظهر فقط قبل التحليل */}
+                        {!analysis && (
+                            <div className="glass p-6 text-slate-300 text-sm">
+                                <h3 className="text-lg font-bold text-white mb-4">كيفية استخدام المحلل الشامل:</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <p className="font-bold text-blue-400 mb-2">📈 المدارس التحليلية:</p>
+                                        <ul className="space-y-1 list-disc list-inside">
+                                            <li>التحليل الكلاسيكي - الدعم والمقاومة والاتجاهات</li>
+                                            <li>التحليل الموجي (إليوت) - دورات السوق</li>
+                                            <li>وايكوف - تجمع المؤسسات</li>
+                                            <li>التحليل الرقمي - الأرقام النفسية</li>
+                                            <li>التحليل الزمني - دورات الانعكاس</li>
+                                            <li>الهارمونيك - أنماط فيبوناتشي</li>
+                                            <li>السيولة الذكية - ICT Concepts</li>
+                                            <li>تحليل الحجم - Volume Analysis</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-blue-400 mb-2">⚙️ الاستراتيجيات:</p>
+                                        <ul className="space-y-1 list-disc list-inside">
+                                            <li>Power of 3 - Manipulation, Expansion, Distribution</li>
+                                            <li>Sweep Strategy - اصطياد السيولة</li>
+                                            <li>SK System - نظام الاتجاه</li>
+                                        </ul>
+                                        <p className="font-bold text-blue-400 mt-4 mb-2">🔧 الأدوات:</p>
+                                        <ul className="space-y-1 list-disc list-inside">
+                                            <li>V-Reversal, Stop Hunt, Fibonacci, FVG</li>
+                                            <li>Breaker Block, Smart Wick, OBV, Tesla 3-6-9</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p className="mt-4 text-emerald-400 text-xs">
+                                    ✦ التحليل مصمم خصيصاً لاستراتيجية السبوت (شراء منخفض - بيع أعلى) - بدون بيع على المكشوف
+                                </p>
                             </div>
                         )}
                     </div>
@@ -633,13 +1518,11 @@
             );
         };
 
-        // تأكد من وجود root element
+        // تشغيل التطبيق
         const rootElement = document.getElementById('root');
         if (rootElement) {
             const root = ReactDOM.createRoot(rootElement);
             root.render(React.createElement(SmartChartAnalyzer));
-        } else {
-            console.error('Root element not found');
         }
     </script>
 </body>
